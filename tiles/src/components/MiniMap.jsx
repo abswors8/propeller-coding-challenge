@@ -15,6 +15,7 @@ export default function MiniMap({miniMapRef, setIsDraggingViewport, handleClick,
   return (
     <div
       ref={miniMapRef}
+      data-testid="minimap"
       className="fixed bottom-4 right-4 z-50 border border-gray-400 rounded cursor-default overflow-hidden shadow-md bg-[#222]"
       style={{
         width: OVERVIEW_SIZE,

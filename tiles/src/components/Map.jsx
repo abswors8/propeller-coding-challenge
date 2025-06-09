@@ -183,6 +183,7 @@ function Map() {
             className={`w-screen h-screen relative ${getCursorClass(mode, isDraggingMap)} bg-black`}
             ref={scrollContainerRef}
             onMouseDown={handleGrabDrag}
+            data-testid="map-container"
         >
             <ModeToggle mode={mode} setMode={setMode} />
 
