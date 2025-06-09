@@ -135,11 +135,17 @@ function Map() {
       useEffect(() => {
         const container = scrollContainerRef.current;
         if (!container) return;
-      
+        // letting the scroll accumulate to avoid too many zooms
+        // and to allow for a more natural zooming experience
+        // when the user scrolls quickly
+        // this is a workaround for the fact that wheel events
+        // can be triggered multiple times in a single scroll action
+        // this doesn't currently work for zooming centered on the cursor
         let scrollAccumulator = 0;
       
         const handleWheel = (e) => {
           if (mode !== 'grab') return;
+          const prevZoom = zoom;
       
           e.preventDefault();
           scrollAccumulator += e.deltaY;
@@ -149,7 +155,7 @@ function Map() {
           scrollAccumulator = 0;
           const newZoom = Math.min(Math.max(zoom - direction, MIN_ZOOM), MAX_ZOOM);
           if (newZoom === zoom) return;
-          const { newScrollX, newScrollY } = calculateZoomPosition(container, newZoom, zoom);
+          const { newScrollX, newScrollY } = calculateZoomPosition(container, newZoom, prevZoom);
           setZoom(newZoom);
           requestAnimationFrame(() => {
               container.scrollTo({ left: newScrollX, top: newScrollY, behavior: 'instant' });
@@ -158,6 +164,29 @@ function Map() {
         container.addEventListener('wheel', handleWheel, { passive: false });
         return () => container.removeEventListener('wheel', handleWheel);
       }, [mode, zoom]);
+
+      useEffect(() => {
+        function handleZoom(newZoom) {
+            const container = scrollContainerRef.current;
+            if (!container) return;
+            const { newScrollX, newScrollY } = calculateZoomPosition(container, newZoom, zoom);
+            setZoom(newZoom);
+            requestAnimationFrame(() => {
+                container.scrollTo({ left: newScrollX, top: newScrollY, behavior: 'instant' });
+            });
+        }
+        const handleKeyDown = (e) => {
+      
+          if (e.key === '+' || e.key === '=') {
+            handleZoom(Math.min(zoom + 1, MAX_ZOOM));
+          } else if (e.key === '-') {
+            handleZoom(Math.max(zoom - 1, MIN_ZOOM));
+          }
+        };
+      
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+      }, [zoom]);
       
 
     return (

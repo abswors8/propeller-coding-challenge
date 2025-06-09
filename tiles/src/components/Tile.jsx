@@ -35,7 +35,7 @@ const Tile = React.memo(function Tile({ x, y, zoom, tileSize }){
             console.error('Tile load error:', err.message);
           }
         }
-      });
+    });
 
     return () => {
       isCancelled = true;
@@ -45,26 +45,19 @@ const Tile = React.memo(function Tile({ x, y, zoom, tileSize }){
   return tileSrc ? (
     <div
     key={`${zoom}-${x}-${y}`}
+    className='absolute will-change-transform'
     style={{
-        position: 'absolute',
         transform: `translate3d(${x * tileSize}px, ${y * tileSize}px, 0)`,
         width: tileSize,
         height: tileSize,
-        willChange: 'transform',
-
     }}
     >
-    <img
+      <img
         src={tileSrc}
         alt={`tile ${zoom}/${x}/${y}`}
-        style={{
-        width: '100%',
-        height: '100%',
-        display: 'block',
-        userSelect: 'none',
-        }}
+        className="w-full h-full block select-none"
         draggable={false}
-    />
+      />
     </div>
   ) : null;
 })
