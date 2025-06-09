@@ -83,7 +83,7 @@ function Map() {
             isDraggingMapRef.current = true;
             dragStartRef.current = { x: e.clientX, y: e.clientY };
             setIsDraggingMap(true);
-          }
+        }
     };
 
     useEffect(() => {
@@ -149,30 +149,12 @@ function Map() {
           scrollAccumulator = 0;
           const newZoom = Math.min(Math.max(zoom - direction, MIN_ZOOM), MAX_ZOOM);
           if (newZoom === zoom) return;
-
-          const rect = container.getBoundingClientRect();
-          const offsetX = e.clientX - rect.left;
-          const offsetY = e.clientY - rect.top;
-          const mapX = container.scrollLeft + offsetX;
-          const mapY = container.scrollTop + offsetY;
-          const ratioX = mapX / (TILE_SIZE * 2 ** zoom);
-          const ratioY = mapY / (TILE_SIZE * 2 ** zoom);
-      
-          const newGridWidth = TILE_SIZE * 2 ** newZoom;
-          const newGridHeight = TILE_SIZE * 2 ** newZoom;
-          const newScrollLeft = ratioX * newGridWidth - offsetX;
-          const newScrollTop = ratioY * newGridHeight - offsetY;
-    
+          const { newScrollX, newScrollY } = calculateZoomPosition(container, newZoom, zoom);
           setZoom(newZoom);
           requestAnimationFrame(() => {
-            container.scrollTo({
-              left: newScrollLeft,
-              top: newScrollTop,
-              behavior: 'auto'
-            });
+              container.scrollTo({ left: newScrollX, top: newScrollY, behavior: 'instant' });
           });
         };
-      
         container.addEventListener('wheel', handleWheel, { passive: false });
         return () => container.removeEventListener('wheel', handleWheel);
       }, [mode, zoom]);

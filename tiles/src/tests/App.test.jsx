@@ -11,8 +11,6 @@ jest.mock('axios', () => ({
   get: jest.fn(() => Promise.resolve({ data: {} })),
 }));
 
-// jest.mock('../components/ZoomControls.jsx', () => () => <div>ZoomControls</div>);
-// jest.mock('../components/ModeToggle.jsx', () => () => <div>ModeToggle</div>);
 jest.mock('../components/MiniMap.jsx', () => () => <div data-testid="minimap">MiniMap</div>);
 jest.mock('../components/TileGrid.jsx', () => () => <div>TileGrid</div>);
 
@@ -56,7 +54,9 @@ describe('Map ZoomControls integration', () => {
     container.scrollTo = jest.fn();
 
     const zoomInBtn = getByTestId('zoom-in-btn');
-    fireEvent.click(zoomInBtn);   // now zoom = 1
+    fireEvent.click(zoomInBtn);
+    fireEvent.click(zoomInBtn);
+    fireEvent.click(zoomInBtn);
   
     await waitFor(() => {
       expect(container.scrollTo).toHaveBeenCalledWith(expect.objectContaining({
@@ -119,5 +119,24 @@ describe('Map scroll behavior', () => {
     });
     expect(mapContainer.scrollLeft).toBe(100);
     expect(mapContainer.scrollTop).toBe(200);
+  });
+});
+
+describe('Map interactions full behaviour stubs', () => {
+  test('grabbing and dragging the map viewport changes the scroll position', () => {
+  });
+  test('dragging the minimap viewport', () => {
+  });
+  test('clicking on the minimap viewport scrolls to correct position', () => {
+  });
+  test('scrolling changes viewport scroll position', () => {
+  });
+  test('zooming in and out changes the minimap viewport size', () => {
+  }); 
+  test('panning changes the tiles displayed in the viewport', () => {
+  });
+  test('zooming in and out changes the number of tiles displayed in the viewport', () => {
+  }); 
+  test('panning stops when the viewport reaches the edge of the map', () => { 
   });
 });
