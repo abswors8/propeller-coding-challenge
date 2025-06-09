@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react';
+import { render, fireEvent, screen } from '@testing-library/react';
 import Map from '../components/Map.jsx';
 import { waitFor } from '@testing-library/react';
 
@@ -20,27 +20,28 @@ describe('Map Component', () => {
   });
 
   test('Has the map container in the document', () => {
-    const { getByTestId } = render(<Map />);
-    expect(getByTestId('map-container')).toBeInTheDocument();
+    render(<Map />);
+    const container = screen.getByTestId('map-container');
+    expect(container).toBeInTheDocument();
   });
 
   test('Changes cursor to grabbing when mode is grab', () => {
-    const { getByTestId } = render(<Map />);
-    const container = getByTestId('map-container');
+    render(<Map />);
+    const container = screen.getByTestId('map-container');
     expect(container.className).not.toMatch(/cursor-grab/);
   });
 
   test('Calls scroll function when user scrolls', () => {
-    const { getByTestId } = render(<Map />);
-    const container = getByTestId('map-container');
+    render(<Map />);
+    const container = screen.getByTestId('map-container');
     container.scrollTo = jest.fn();
     fireEvent.scroll(container, { target: { scrollLeft: 100, scrollTop: 150 } });
     expect(true).toBe(true);
   });
 
   test('If you click on mini map something happens', () => {
-    const { getByTestId } = render(<Map />);
-    const minimap = getByTestId('minimap');
+    render(<Map />);
+    const minimap = screen.getByTestId('minimap');
     fireEvent.click(minimap, { clientX: 50, clientY: 50 });
     expect(true).toBe(true);
   });
@@ -48,12 +49,12 @@ describe('Map Component', () => {
 
 describe('Map ZoomControls integration', () => {
   test('clicking + button increases zoom level of viewport', async () => {
-    const { getByTestId } = render(<Map />);
-    const container = getByTestId('map-container');
+    render(<Map />);
+    const container = screen.getByTestId('map-container');
 
     container.scrollTo = jest.fn();
 
-    const zoomInBtn = getByTestId('zoom-in-btn');
+    const zoomInBtn = screen.getByTestId('zoom-in-btn');
     fireEvent.click(zoomInBtn);
     fireEvent.click(zoomInBtn);
     fireEvent.click(zoomInBtn);
@@ -68,12 +69,12 @@ describe('Map ZoomControls integration', () => {
   });
 
   test('Zooming triggers a change in viewport', async () => {
-    const { getByTestId } = render(<Map />);
-    const container = getByTestId('map-container');
+    render(<Map />);
+    const container = screen.getByTestId('map-container');
     container.scrollTo = jest.fn();
   
-    const zoomInBtn = getByTestId('zoom-in-btn');
-    const zoomOutBtn = getByTestId('zoom-out-btn');
+    const zoomInBtn = screen.getByTestId('zoom-in-btn');
+    const zoomOutBtn = screen.getByTestId('zoom-out-btn');
   
     fireEvent.click(zoomInBtn);
     fireEvent.click(zoomOutBtn);
@@ -91,12 +92,12 @@ describe('Map ZoomControls integration', () => {
 
 describe('Toggle interaction mode', () => {
   test('clicking Grab changes mode and disables Grab button and vice versa', () => {
-    const { getByTestId } = render(<Map />);
-    const container = getByTestId('map-container');
+    render(<Map />);
+    const container = screen.getByTestId('map-container');
     container.scrollTo = jest.fn();
 
-    const grabButton = getByTestId('grab-button');
-    const arrowButton = getByTestId('arrow-button');
+    const grabButton = screen.getByTestId('grab-button');
+    const arrowButton = screen.getByTestId('arrow-button');
 
     expect(arrowButton).toBeDisabled();
     expect(grabButton).not.toBeDisabled();
@@ -112,8 +113,8 @@ describe('Toggle interaction mode', () => {
 });
 describe('Map scroll behavior', () => {
   test('scroll event updates scroll position', () => {
-    const { getByTestId } = render(<Map />);
-    const mapContainer = getByTestId('map-container');
+    render(<Map />);
+    const mapContainer = screen.getByTestId('map-container');
     fireEvent.scroll(mapContainer, {
       target: { scrollLeft: 100, scrollTop: 200 }
     });

@@ -2,7 +2,7 @@ import { MIN_ZOOM, MAX_ZOOM } from "../utils/utils";
 
 export default function ZoomControls({ zoom, handleZoom }) {
     function getClassName (zoom,direction){
-        return (zoom <= MIN_ZOOM && direction==='-') || (zoom >= MAX_ZOOM && direction==='+')
+        return ((zoom <= MIN_ZOOM) && (direction==='-')) || ((zoom >= MAX_ZOOM) && (direction==='+'))
             ? 'font-bold py-1 px-3 rounded bg-gray-400 hover:bg-gray-400'
             : 'font-bold py-1 px-3 rounded bg-primary text-white hover:bg-[#e09f2d]';
     }
