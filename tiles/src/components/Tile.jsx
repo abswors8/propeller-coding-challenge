@@ -5,14 +5,12 @@ const tileUrl = (z, x, y) => `https://challenge-tiler.services.propelleraero.com
 
 const Tile = React.memo(function Tile({ x, y, zoom, tileSize }){
   const [tileSrc, setTileSrc] = useState(null);
-  const [error, setError] = useState(false);
   const url = tileUrl(zoom, x, y);
 
   useEffect(() => {
     let isCancelled = false;
 
     setTileSrc(null);
-    setError(false);
     axios
       .get(url, { responseType: 'arraybuffer' })
       .then((response) => {
@@ -24,7 +22,7 @@ const Tile = React.memo(function Tile({ x, y, zoom, tileSize }){
           )
         );
 
-        const mimeType = response.headers['content-type'] || 'image/png'; // fallback
+        const mimeType = response.headers['content-type'] || 'image/png';
         const dataUrl = `data:${mimeType};base64,${base64}`;
 
         setTileSrc(dataUrl);
@@ -36,7 +34,6 @@ const Tile = React.memo(function Tile({ x, y, zoom, tileSize }){
           } else {
             console.error('Tile load error:', err.message);
           }
-          setError(true);
         }
       });
 
@@ -44,23 +41,6 @@ const Tile = React.memo(function Tile({ x, y, zoom, tileSize }){
       isCancelled = true;
     };
   }, [url, zoom, x, y]);
-
-  if (error) {
-    return (
-      <div
-        style={{
-          position: 'absolute',
-          top: y * tileSize,
-          left: x * tileSize,
-          width: tileSize,
-          height: tileSize,
-          backgroundColor: '#f8f8f8',
-          border: '1px solid #ccc',
-                  willChange: 'transform',
-        }}
-      />
-    );
-  }
 
   return tileSrc ? (
     <div
@@ -70,8 +50,6 @@ const Tile = React.memo(function Tile({ x, y, zoom, tileSize }){
         transform: `translate3d(${x * tileSize}px, ${y * tileSize}px, 0)`,
         width: tileSize,
         height: tileSize,
-        // border: '1px solid #999', // optional for visual grid
-        boxSizing: 'border-box',
         willChange: 'transform',
 
     }}
@@ -87,23 +65,7 @@ const Tile = React.memo(function Tile({ x, y, zoom, tileSize }){
         }}
         draggable={false}
     />
-    <div
-        style={{
-        position: 'absolute',
-        bottom: 4,
-        left: 4,
-        fontSize: 12,
-        background: 'rgba(255,255,255,0.7)',
-        padding: '2px 4px',
-        borderRadius: 4,
-        color: '#000',
-        }}
-    >
-        {`${zoom}/${x}/${y}`}
     </div>
-    </div>
-
-
   ) : null;
 })
 
