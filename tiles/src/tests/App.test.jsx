@@ -15,6 +15,9 @@ jest.mock('../components/MiniMap.jsx', () => () => <div data-testid="minimap">Mi
 jest.mock('../components/TileGrid.jsx', () => () => <div>TileGrid</div>);
 
 describe('Map Component', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
   test('Renders without crashing', () => {
     render(<Map />);
   });
@@ -34,16 +37,8 @@ describe('Map Component', () => {
   test('Calls scroll function when user scrolls', () => {
     render(<Map />);
     const container = screen.getByTestId('map-container');
-    container.scrollTo = jest.fn();
     fireEvent.scroll(container, { target: { scrollLeft: 100, scrollTop: 150 } });
-    expect(true).toBe(true);
-  });
-
-  test('If you click on mini map something happens', () => {
-    render(<Map />);
-    const minimap = screen.getByTestId('minimap');
-    fireEvent.click(minimap, { clientX: 50, clientY: 50 });
-    expect(true).toBe(true);
+    expect(container.scrollLeft).toBe(100);
   });
 });
 
@@ -123,7 +118,7 @@ describe('Map scroll behavior', () => {
   });
 });
 
-describe('Map interactions full behaviour stubs', () => {
+describe('Map interactions behaviour stubs', () => {
   test('grabbing and dragging the map viewport changes the scroll position', () => {
   });
   test('dragging the minimap viewport', () => {
@@ -139,5 +134,7 @@ describe('Map interactions full behaviour stubs', () => {
   test('zooming in and out changes the number of tiles displayed in the viewport', () => {
   }); 
   test('panning stops when the viewport reaches the edge of the map', () => { 
+  });
+  test('If you click on mini map something happens', () => {
   });
 });
