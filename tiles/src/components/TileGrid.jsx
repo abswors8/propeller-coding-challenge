@@ -1,6 +1,8 @@
 import Tile from './Tile';
 
 export default function TileGrid({gridWidth, gridHeight, viewportWidth, viewportHeight, position, zoom, tileSize}) {
+    // Function to calculate visible tiles based on position and zoom level
+    // A couple of extra tiles are added to reduce flickering during panning
     function getVisibleTiles(position, zoom, viewportWidth, viewportHeight, tileSize) {
         const numTiles = 2 ** zoom;
         const tilesPerRow = Math.ceil(viewportWidth / tileSize) + 3;

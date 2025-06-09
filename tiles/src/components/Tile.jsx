@@ -7,6 +7,7 @@ const Tile = React.memo(function Tile({ x, y, zoom, tileSize }){
   const [tileSrc, setTileSrc] = useState(null);
   const url = tileUrl(zoom, x, y);
 
+    // fetch the tile image from the server and convert to a Tile component
   useEffect(() => {
     let isCancelled = false;
 

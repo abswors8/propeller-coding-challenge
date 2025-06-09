@@ -30,7 +30,7 @@ function Map() {
                 : 'overflow-scroll'
     }
       
-    // Handle scroll position updates
+    // Handle scrolling to update the scroll position
     useEffect(() => {
         const container = scrollContainerRef.current;
         if (!container) return;
@@ -57,7 +57,8 @@ function Map() {
         const scrollY = relativeY * gridHeight - container.clientHeight / 2;
         container.scrollTo({ left: scrollX, top: scrollY, behavior: behavior });
     }
-
+    // quickly calculate the new scroll position based on the zoom level and the current scroll position
+    // keep the map centered
     function handleZoom(newZoom) {
         const container = scrollContainerRef.current;
         if (!container) return;
@@ -67,7 +68,7 @@ function Map() {
             container.scrollTo({ left: newScrollX, top: newScrollY, behavior: 'instant' });
         });
     }
-      
+    // Handle clicking on the minimap to scroll to the clicked position
     const handleClick= (e) => {
         if (!miniMapRef.current || !scrollContainerRef.current) return;
         e.stopPropagation();
@@ -78,6 +79,7 @@ function Map() {
         const relativeY = Math.max(0, Math.min(clickY / OVERVIEW_SIZE, 1));
         scrollToPositionOnMinimap(scrollContainerRef.current, relativeX, relativeY, gridWidth, gridHeight);
     };
+    
     const handleGrabDrag = (e) => {
         if (mode === 'grab') {
             isDraggingMapRef.current = true;
@@ -85,7 +87,7 @@ function Map() {
             setIsDraggingMap(true);
         }
     };
-
+    // Handle dragging the viewport on the minimap and dragging the map to pan around
     useEffect(() => {
         const container = scrollContainerRef.current;
         const miniMap = miniMapRef.current;
@@ -131,7 +133,7 @@ function Map() {
           window.removeEventListener('mouseup', handleMouseUp);
         };
       }, [isDraggingViewport, isDraggingMap, mode, gridWidth, gridHeight]);
-      
+      // Zooming with mouse wheel
       useEffect(() => {
         const container = scrollContainerRef.current;
         if (!container) return;
@@ -164,7 +166,7 @@ function Map() {
         container.addEventListener('wheel', handleWheel, { passive: false });
         return () => container.removeEventListener('wheel', handleWheel);
       }, [mode, zoom]);
-
+      // Handle zooming with keyboard shortcuts
       useEffect(() => {
         function handleZoom(newZoom) {
             const container = scrollContainerRef.current;
