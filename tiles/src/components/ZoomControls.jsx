@@ -11,6 +11,7 @@ export default function ZoomControls({ zoom, handleZoom }) {
             <button
               onClick={() => handleZoom(Math.max(zoom - 1, MIN_ZOOM))}
               disabled={zoom <= MIN_ZOOM}
+              data-testid="zoom-out-btn"
               className={`${getClassName(zoom, '-')}`}
             >
               -
@@ -18,6 +19,7 @@ export default function ZoomControls({ zoom, handleZoom }) {
             <button
               onClick={() => handleZoom(Math.min(zoom + 1, MAX_ZOOM))}
               disabled={zoom >= MAX_ZOOM}
+              data-testid="zoom-in-btn"
               className={`${getClassName(zoom, '+')}`}
             >
               +

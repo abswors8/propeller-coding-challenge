@@ -9,6 +9,7 @@ export default function ModeToggle({ mode, setMode }) {
         <button
           onClick={() => setMode('grab')}
           disabled={mode === 'grab'}
+          data-testid="grab-button"
           className={`font-bold py-1 px-3 rounded ${getClassName(mode, 'arrow')}`}
         >
           ✋ Grab
@@ -16,6 +17,7 @@ export default function ModeToggle({ mode, setMode }) {
         <button
           onClick={() => setMode('arrow')}
           disabled={mode === 'arrow'}
+          data-testid="arrow-button"
           className={`font-bold py-1 px-3 rounded ${getClassName(mode, 'grab')}`}
         >
           🖱️ Arrow
