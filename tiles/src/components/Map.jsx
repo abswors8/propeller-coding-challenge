@@ -16,8 +16,8 @@ function Map() {
     const dragStartingPoint = useRef({ x: 0, y: 0 });
     const [draggingTF, setDragTF] = useState(false);
 
-    const viewportWidth = 1400;
-    const viewportHeight = 800;
+    const width = 1400;
+    const height = 800;
     const gridWidth = 2 ** zoom * TILE_SIZE;
     const gridHeight = 2 ** zoom * TILE_SIZE;
 
@@ -202,8 +202,8 @@ function Map() {
 
             <TileGrid gridHeight={gridHeight}
             gridWidth={gridWidth}
-            viewportHeight={viewportHeight}
-            viewportWidth={viewportWidth}
+            height={height}
+            width={width}
             position={position}
             zoom={zoom}
             tileSize={TILE_SIZE} />
@@ -215,8 +215,8 @@ function Map() {
             handleClick={clickCenterMap}
             position={position}
             zoom={zoom}
-            viewportWidth={viewportWidth}
-            viewportHeight={viewportHeight}
+            viewportWidth={width}
+            viewportHeight={height}
             tileSize={TILE_SIZE}
             />
         </div>

@@ -1,12 +1,12 @@
 import Tile from './Tile';
 
-export default function TileGrid({gridWidth, gridHeight, viewportWidth, viewportHeight, position, zoom, tileSize}) {
+export default function TileGrid({gridWidth, gridHeight, width, height, position, zoom, tileSize}) {
     // Function to calculate visible tiles based on position and zoom level
     // A couple of extra tiles are added to reduce flickering during panning
-    function getVisibleTiles(position, zoom, viewportWidth, viewportHeight, tileSize) {
+    function getVisibleTiles(position, zoom, width, height, tileSize) {
         const numTiles = 2 ** zoom;
-        const tilesPerRow = Math.ceil(viewportWidth / tileSize) + 3;
-        const tilesPerCol = Math.ceil(viewportHeight / tileSize) + 3;
+        const tilesPerRow = Math.ceil(width / tileSize) + 3;
+        const tilesPerCol = Math.ceil(height / tileSize) + 3;
         const startX = Math.floor(position.x / tileSize);
         const startY = Math.floor(position.y / tileSize);
         const endX = startX + tilesPerRow;
@@ -22,22 +22,22 @@ export default function TileGrid({gridWidth, gridHeight, viewportWidth, viewport
         }
         return tiles;
     }
-    const visibleTiles = getVisibleTiles(position, zoom, viewportWidth, viewportHeight, tileSize);
+    const visibleTiles = getVisibleTiles(position, zoom, width, height, tileSize);
     const tiles = visibleTiles.map(({ x, y, zoom }) => <Tile key={`${x}-${y}-${zoom}`} zoom={zoom} x={x} y={y} tileSize={tileSize}/>);
       
     return (
         <div
             className="relative bg-dark text-primary p-4 rounded"
             style={{
-              width: Math.max(gridWidth, viewportWidth),
-              height: Math.max(gridHeight, viewportHeight),
+              width: Math.max(gridWidth, width),
+              height: Math.max(gridHeight, height),
             }}
         >
             <div
               className="absolute"
               style={{
-                left: (Math.max(gridWidth, viewportWidth) - gridWidth) / 2,
-                top: (Math.max(gridHeight, viewportHeight) - gridHeight) / 2,
+                left: (Math.max(gridWidth, width) - gridWidth) / 2,
+                top: (Math.max(gridHeight, height) - gridHeight) / 2,
                 width: gridWidth,
                 height: gridHeight,
               }}
