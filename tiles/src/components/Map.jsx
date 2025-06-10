@@ -146,26 +146,45 @@ function Map() {
         let scrollAccumulator = 0;
       
         const handleWheel = (e) => {
-          if (mode !== 'grab') return;
-          const prevZoom = zoom;
-      
-          e.preventDefault();
-          scrollAccumulator += e.deltaY;
-          const ZOOM_THRESHOLD = 100;
-          if (Math.abs(scrollAccumulator) < ZOOM_THRESHOLD) return;
-          const direction = Math.sign(scrollAccumulator);
-          scrollAccumulator = 0;
-          const newZoom = Math.min(Math.max(zoom - direction, MIN_ZOOM), MAX_ZOOM);
-          if (newZoom === zoom) return;
-          const { newScrollX, newScrollY } = calculateZoomPosition(container, newZoom, prevZoom);
-          setZoom(newZoom);
-          requestAnimationFrame(() => {
-              container.scrollTo({ left: newScrollX, top: newScrollY, behavior: 'instant' });
-          });
+            if (mode !== 'grab') return;
+
+            e.preventDefault();
+            scrollAccumulator += e.deltaY;
+
+            const ZOOM_THRESHOLD = 100;
+            if (Math.abs(scrollAccumulator) < ZOOM_THRESHOLD) return;
+
+            const direction = Math.sign(scrollAccumulator);
+            scrollAccumulator = 0;
+
+            const newZoom = Math.min(Math.max(zoom - direction, MIN_ZOOM), MAX_ZOOM);
+            if (newZoom === zoom) return;
+                // attempt to center the zoom on the cursor position
+            const container = scrollContainerRef.current;
+            if (!container) return;
+
+            const rect = container.getBoundingClientRect();
+            const offsetX = e.clientX - rect.left + container.scrollLeft;
+            const offsetY = e.clientY - rect.top + container.scrollTop;
+
+            const zoomFactor = 2 ** (newZoom - zoom);
+
+            const newScrollX = offsetX * zoomFactor - (e.clientX - rect.left);
+            const newScrollY = offsetY * zoomFactor - (e.clientY - rect.top);
+
+            setZoom(newZoom);
+            requestAnimationFrame(() => {
+                container.scrollTo({
+                left: newScrollX,
+                top: newScrollY,
+                behavior: 'instant',
+                });
+            });
         };
+
         container.addEventListener('wheel', handleWheel, { passive: false });
         return () => container.removeEventListener('wheel', handleWheel);
-      }, [mode, zoom]);
+        }, [mode, zoom]);
       // Handle zooming with keyboard shortcuts
       useEffect(() => {
         function handleZoom(newZoom) {
