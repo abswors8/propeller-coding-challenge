@@ -3,121 +3,94 @@ import ZoomControls from './ZoomControls.jsx';
 import ModeToggle from './ModeToggle.jsx';
 import MiniMap from './MiniMap.jsx';
 import TileGrid from './TileGrid.jsx';
-import { calculateZoomPosition, TILE_SIZE, OVERVIEW_SIZE, MIN_ZOOM, MAX_ZOOM } from '../utils/utils.js';
+import { calculateZoomPosition, TILE_SIZE, SMALL_MAP_SIZE, MIN_ZOOM, MAX_ZOOM } from '../utils/utils.js';
 
 function Map() {
     const [zoom, setZoom] = useState(0);
     const [position, setScrollPosition] = useState({ x: 0, y: 0 });
-    const scrollContainerRef = useRef(null);
+    const scrolling = useRef(null);
     const [mode, setMode] = useState('arrow');
     const [isDraggingViewport, setIsDraggingViewport] = useState(false);
     const miniMapRef = useRef(null);
     const [isDraggingMap, setIsDraggingMap] = useState(false);
-    const dragStartRef = useRef({ x: 0, y: 0 });
-    const isDraggingMapRef = useRef(false);
+    const dragStartingPoint = useRef({ x: 0, y: 0 });
+    const [draggingTF, setDragTF] = useState(false);
 
     const viewportWidth = 1400;
     const viewportHeight = 800;
-    const numTiles = 2 ** zoom;
-    const gridWidth = numTiles * TILE_SIZE;
-    const gridHeight = numTiles * TILE_SIZE;
+    const gridWidth = 2 ** zoom * TILE_SIZE;
+    const gridHeight = 2 ** zoom * TILE_SIZE;
 
     function getCursorClass(mode, isDraggingMap) {
         return mode === 'grab' 
-            ? isDraggingMap 
-                ? 'cursor-grabbing overflow-hidden select-none' 
-                : 'cursor-grab overflow-hidden select-none' 
-                : 'overflow-scroll'
+            ? isDraggingMap ? 'cursor-grabbing overflow-hidden select-none' : 'cursor-grab overflow-hidden select-none' : 'overflow-scroll'
     }
       
-    // Handle scrolling to update the scroll position
-    useEffect(() => {
-        const container = scrollContainerRef.current;
-        if (!container) return;
-        let ticking = false;
-        const handleScroll = () => {
-          if (!ticking) {
-            window.requestAnimationFrame(() => {
-              setScrollPosition({
-                x: container.scrollLeft,
-                y: container.scrollTop,
-              });
-              ticking = false;
-            });
-            ticking = true;
-          }
-        };
-    
-        container.addEventListener('scroll', handleScroll);
-        return () => container.removeEventListener('scroll', handleScroll);
-    }, []);
-      
-    function scrollToPositionOnMinimap(container, relativeX, relativeY, gridWidth, gridHeight, behavior = 'smooth') {
-        const scrollX = relativeX * gridWidth - container.clientWidth / 2;
-        const scrollY = relativeY * gridHeight - container.clientHeight / 2;
-        container.scrollTo({ left: scrollX, top: scrollY, behavior: behavior });
+    function scrollToPositionOnMinimap(box, relativeX, relativeY, gridWidth, gridHeight, behavior = 'smooth') {
+        const scrollX = relativeX * gridWidth - box.clientWidth / 2;
+        const scrollY = relativeY * gridHeight - box.clientHeight / 2;
+        box.scrollTo({ left: scrollX, top: scrollY, behavior: behavior });
     }
-    // quickly calculate the new scroll position based on the zoom level and the current scroll position
-    // keep the map centered
-    function handleZoom(newZoom) {
-        const container = scrollContainerRef.current;
-        if (!container) return;
-        const { newScrollX, newScrollY } = calculateZoomPosition(container, newZoom, zoom);
+    // keep the map centered when zooming calcs new pos w calculateZoomPosition
+    function newZoomPos(newZoom) {
+        const c = scrolling.current;
+        if (!c) return;
+        const { newScrollX, newScrollY } = calculateZoomPosition(c, newZoom, zoom);
         setZoom(newZoom);
         requestAnimationFrame(() => {
-            container.scrollTo({ left: newScrollX, top: newScrollY, behavior: 'instant' });
+            c.scrollTo({ left: newScrollX, top: newScrollY, behavior: 'instant' });
         });
     }
-    // Handle clicking on the minimap to scroll to the clicked position
-    const handleClick= (e) => {
-        if (!miniMapRef.current || !scrollContainerRef.current) return;
+    // if you click on the small ma it goes to that oposition in the viewport
+    const clickCenterMap= (e) => {
+        if (!miniMapRef.current || !scrolling.current) return;
         e.stopPropagation();
         const rect = miniMapRef.current.getBoundingClientRect();
         const clickX = e.clientX - rect.left;
         const clickY = e.clientY - rect.top;
-        const relativeX = Math.max(0, Math.min(clickX / OVERVIEW_SIZE, 1));
-        const relativeY = Math.max(0, Math.min(clickY / OVERVIEW_SIZE, 1));
-        scrollToPositionOnMinimap(scrollContainerRef.current, relativeX, relativeY, gridWidth, gridHeight);
+        const relativeX = Math.max(0, Math.min(clickX / SMALL_MAP_SIZE, 1));
+        const relativeY = Math.max(0, Math.min(clickY / SMALL_MAP_SIZE, 1));
+        scrollToPositionOnMinimap(scrolling.current, relativeX, relativeY, gridWidth, gridHeight);
     };
     
     const handleGrabDrag = (e) => {
         if (mode === 'grab') {
-            isDraggingMapRef.current = true;
-            dragStartRef.current = { x: e.clientX, y: e.clientY };
+            setDragTF(true);
+            dragStartingPoint.current = { x: e.clientX, y: e.clientY };
             setIsDraggingMap(true);
         }
     };
-    // Handle dragging the viewport on the minimap and dragging the map to pan around
+    // dragging behaviours
     useEffect(() => {
-        const container = scrollContainerRef.current;
+        const c = scrolling.current;
         const miniMap = miniMapRef.current;
-        if (!container) return;
+        if (!c) return;
       
         const handleMouseMove = (e) => {
-          // Dragging the viewport on the minimap
+          // user grabbing the yellow box on the tiny map
           if (isDraggingViewport && miniMap) {
             const rect = miniMap.getBoundingClientRect();
             const offsetX = e.clientX - rect.left;
             const offsetY = e.clientY - rect.top;
       
-            const relativeX = Math.max(0, Math.min(offsetX / OVERVIEW_SIZE, 1));
-            const relativeY = Math.max(0, Math.min(offsetY / OVERVIEW_SIZE, 1));
+            const relativeX = Math.max(0, Math.min(offsetX / SMALL_MAP_SIZE, 1));
+            const relativeY = Math.max(0, Math.min(offsetY / SMALL_MAP_SIZE, 1));
       
-            const newScrollLeft = relativeX * gridWidth - container.clientWidth / 2;
-            const newScrollTop = relativeY * gridHeight - container.clientHeight / 2;
+            const newScrollLeft = relativeX * gridWidth - c.clientWidth / 2;
+            const newScrollTop = relativeY * gridHeight - c.clientHeight / 2;
       
-            container.scrollTo({ left: newScrollLeft, top: newScrollTop, behavior: 'auto' });
+            c.scrollTo({ left: newScrollLeft, top: newScrollTop, behavior: 'auto' });
           }
       
-          // Dragging the map
+          // user grab the map and try to move around
           if (isDraggingMap && mode === 'grab') {
-            const dx = e.clientX - dragStartRef.current.x;
-            const dy = e.clientY - dragStartRef.current.y;
+            const dragX = e.clientX - dragStartingPoint.current.x;
+            const dragY = e.clientY - dragStartingPoint.current.y;
       
-            container.scrollLeft -= dx;
-            container.scrollTop -= dy;
+            c.scrollLeft -= dragX;
+            c.scrollTop -= dragY;
       
-            dragStartRef.current = { x: e.clientX, y: e.clientY };
+            dragStartingPoint.current = { x: e.clientX, y: e.clientY };
           }
         };
       
@@ -133,67 +106,54 @@ function Map() {
           window.removeEventListener('mouseup', handleMouseUp);
         };
       }, [isDraggingViewport, isDraggingMap, mode, gridWidth, gridHeight]);
-      // Zooming with mouse wheel
+      // Zooming with with the mouse scrolly thing
       useEffect(() => {
-        const container = scrollContainerRef.current;
-        if (!container) return;
-        // letting the scroll accumulate to avoid too many zooms
-        // and to allow for a more natural zooming experience
+        const el = scrolling.current;
+        if (!el) return;
+        let acc = 0;
+                // letting the scroll accumulate to avoid too many zooms
+        // tryign to make it feel smoother
         // when the user scrolls quickly
-        // this is a workaround for the fact that wheel events
-        // can be triggered multiple times in a single scroll action
-        // this doesn't currently work for zooming centered on the cursor
-        let scrollAccumulator = 0;
-      
-        const handleWheel = (e) => {
-            if (mode !== 'grab') return;
-
-            e.preventDefault();
-            scrollAccumulator += e.deltaY;
-
-            const ZOOM_THRESHOLD = 100;
-            if (Math.abs(scrollAccumulator) < ZOOM_THRESHOLD) return;
-
-            const direction = Math.sign(scrollAccumulator);
-            scrollAccumulator = 0;
-
-            const newZoom = Math.min(Math.max(zoom - direction, MIN_ZOOM), MAX_ZOOM);
-            if (newZoom === zoom) return;
-                // attempt to center the zoom on the cursor position
-            const container = scrollContainerRef.current;
-            if (!container) return;
-
-            const rect = container.getBoundingClientRect();
-            const offsetX = e.clientX - rect.left + container.scrollLeft;
-            const offsetY = e.clientY - rect.top + container.scrollTop;
-
-            const zoomFactor = 2 ** (newZoom - zoom);
-
-            const newScrollX = offsetX * zoomFactor - (e.clientX - rect.left);
-            const newScrollY = offsetY * zoomFactor - (e.clientY - rect.top);
-
-            setZoom(newZoom);
-            requestAnimationFrame(() => {
-                container.scrollTo({
-                left: newScrollX,
-                top: newScrollY,
-                behavior: 'instant',
-                });
+        // doesnt center on cursos but tried
+        const wheelHandler = (e) => {
+          if (mode !== 'grab') return;
+          e.preventDefault();
+          acc += e.deltaY;
+          if (Math.abs(acc) < 100) return;
+          const dir = Math.sign(acc);
+          acc = 0;
+          const nextZoom = Math.min(Math.max(zoom - dir, MIN_ZOOM), MAX_ZOOM);
+          if (nextZoom === zoom) return;
+          const rect = el.getBoundingClientRect();
+          // this is the bit that doesnt work
+          const offX = e.clientX - rect.left + el.scrollLeft;
+          const offY = e.clientY - rect.top + el.scrollTop;
+          console.log(offX, offY);
+          const factor = 2 ** (nextZoom - zoom);
+          setZoom(nextZoom);
+          console.log(offX * factor - (e.clientX - rect.left))
+          console.log(offY * factor - (e.clientY - rect.top));
+          requestAnimationFrame(() => {
+            el.scrollTo({
+              left: offX * factor - (e.clientX - rect.left),
+              top: offY * factor - (e.clientY - rect.top),
+              behavior: 'instant',
             });
+          });
         };
+        el.addEventListener('wheel', wheelHandler, { passive: false });
+        return () => el.removeEventListener('wheel', wheelHandler);
+      }, [mode, zoom]);
 
-        container.addEventListener('wheel', handleWheel, { passive: false });
-        return () => container.removeEventListener('wheel', handleWheel);
-        }, [mode, zoom]);
       // Handle zooming with keyboard shortcuts
       useEffect(() => {
         function handleZoom(newZoom) {
-            const container = scrollContainerRef.current;
-            if (!container) return;
-            const { newScrollX, newScrollY } = calculateZoomPosition(container, newZoom, zoom);
+            const c = scrolling.current;
+            if (!c) return;
+            const { newScrollX, newScrollY } = calculateZoomPosition(c, newZoom, zoom);
             setZoom(newZoom);
             requestAnimationFrame(() => {
-                container.scrollTo({ left: newScrollX, top: newScrollY, behavior: 'instant' });
+                c.scrollTo({ left: newScrollX, top: newScrollY, behavior: 'instant' });
             });
         }
         const handleKeyDown = (e) => {
@@ -208,14 +168,35 @@ function Map() {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
       }, [zoom]);
-      
+
+    // when the user scrolls the position is updated, ticking is like loading 
+    useEffect(() => {
+        const c = scrolling.current;
+        if (!c) return;
+        let ticking = false;
+        const handleScroll = () => {
+          if (!ticking) {
+            window.requestAnimationFrame(() => {
+              setScrollPosition({
+                x: c.scrollLeft,
+                y: c.scrollTop,
+              });
+              ticking = false;
+            });
+            ticking = true;
+          }
+        };
+    
+        c.addEventListener('scroll', handleScroll);
+        return () => c.removeEventListener('scroll', handleScroll);
+    }, []);
 
     return (
         <div
             className={`w-screen h-screen relative ${getCursorClass(mode, isDraggingMap)} bg-black`}
-            ref={scrollContainerRef}
+            ref={scrolling}
             onMouseDown={handleGrabDrag}
-            data-testid="map-container"
+            data-testid="map-c"
         >
             <ModeToggle mode={mode} setMode={setMode} />
 
@@ -227,11 +208,11 @@ function Map() {
             zoom={zoom}
             tileSize={TILE_SIZE} />
 
-            <ZoomControls zoom={zoom} handleZoom={handleZoom}/>
+            <ZoomControls zoom={zoom} handleZoom={newZoomPos}/>
 
             <MiniMap miniMapRef={miniMapRef}
             setIsDraggingViewport={setIsDraggingViewport}
-            handleClick={handleClick}
+            handleClick={clickCenterMap}
             position={position}
             zoom={zoom}
             viewportWidth={viewportWidth}

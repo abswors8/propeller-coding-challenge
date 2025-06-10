@@ -1,7 +1,7 @@
 export const TILE_SIZE = 512; 
 export const MIN_ZOOM = 0;
 export const MAX_ZOOM = 3;
-export const OVERVIEW_SIZE = 200;
+export const SMALL_MAP_SIZE = 200;
 
 export function calculateZoomPosition(container, newZoom, zoom) {
     const prevZoom = zoom;
